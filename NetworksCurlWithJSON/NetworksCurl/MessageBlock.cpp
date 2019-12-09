@@ -57,7 +57,7 @@ void MessageBlock::setDateTime(string dateT)
 	dateTime = dateT;
 }
 
-void MessageBlock::updateContents(string desc, string iconLoc, string curTemp, string dateT)
+void MessageBlock::updateCurrentConditions(string desc, string iconLoc, string curTemp, string dateT)
 {
 	description = desc;
 	iconLocation = iconLoc;

@@ -39,6 +39,6 @@ using std::vector;
 	 string getDateTime();
 	 void setDateTime(string dateT);
 
-	 void updateContents(string desc, string iconLoc, string curTemp, string dateT);
+	 void updateCurrentConditions(string desc, string iconLoc, string curTemp, string dateT);
 
 };

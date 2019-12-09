@@ -18,12 +18,18 @@
     <ClCompile Include="NetworksCurl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MessageBlock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="slacking\slacking.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="slacking\json.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageBlock.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

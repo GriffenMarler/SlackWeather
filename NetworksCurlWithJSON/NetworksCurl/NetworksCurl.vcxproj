@@ -153,9 +153,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="MessageBlock.cpp" />
     <ClCompile Include="NetworksCurl.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MessageBlock.h" />
     <ClInclude Include="slacking\json.hpp" />
     <ClInclude Include="slacking\slacking.hpp" />
   </ItemGroup>

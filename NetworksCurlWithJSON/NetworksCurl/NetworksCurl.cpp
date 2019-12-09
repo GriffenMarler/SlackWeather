@@ -91,7 +91,7 @@ int main()
 	slack.chat.channel_username_iconemoji("#project", "Weather Bot", ":hamster:");
 
 
-	std::string a = "[{"color":"#36a64f","fallback":"Required plain - text summary of the attachment.","fields":[{"short":false,"title":"Priority","value":"High"}],"footer":"Slack API","footer_icon":"https://platform.slack-edge.com/img/default_application_icon.png","image_url":"http://my-website.com/path/to/image.jpg","pretext":"Daily Weather Report as of","text":"Time:   6AM\t9AM\t12PM\t3PM\t6PM\t9PM\t12AM\nTemp:\t t1\t \tt2\t\t t3\t\t t4 \t\t t5 \t   t6\t\t t7","thumb_url":"http://example.com/path/to/thumb.png","title_link":"https://api.slack.com/"}]"
+	//std::string a = "[{"color":"#36a64f","fallback":"Required plain - text summary of the attachment.","fields":[{"short":false,"title":"Priority","value":"High"}],"footer":"Slack API","footer_icon":"https://platform.slack-edge.com/img/default_application_icon.png","image_url":"http://my-website.com/path/to/image.jpg","pretext":"Daily Weather Report as of","text":"Time:   6AM\t9AM\t12PM\t3PM\t6PM\t9PM\t12AM\nTemp:\t t1\t \tt2\t\t t3\t\t t4 \t\t t5 \t   t6\t\t t7","thumb_url":"http://example.com/path/to/thumb.png","title_link":"https://api.slack.com/"}]"
 
 	auto json_attachments = R"([ 
 	{
