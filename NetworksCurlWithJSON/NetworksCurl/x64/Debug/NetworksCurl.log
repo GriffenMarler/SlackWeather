@@ -1,4 +1,3 @@
 ﻿  NetworksCurl.cpp
-C:\Users\gmarl\Desktop\NetworksFinal-master\NetworksFinal-master\NetworksCurlWithParse\NetworksCurl\NetworksCurl.cpp(65,27): warning C4129: '/': unrecognized character escape sequence
-LINK : warning LNK4098: defaultlib 'LIBCMTD' conflicts with use of other libs; use /NODEFAULTLIB:library
-  NetworksCurl.vcxproj -> C:\Users\gmarl\Desktop\NetworksFinal-master\NetworksFinal-master\NetworksCurlWithParse\x64\Debug\NetworksCurl.exe
+C:\Users\gmarler20\Desktop\NetworksFinal-master\NetworksCurlWithJSON\NetworksCurl\NetworksCurl.cpp(65,27): warning C4129:  '/': unrecognized character escape sequence
+  NetworksCurl.vcxproj -> C:\Users\gmarler20\Desktop\NetworksFinal-master\NetworksCurlWithJSON\x64\Debug\NetworksCurl.exe

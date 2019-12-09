@@ -84,12 +84,45 @@ int main()
 	// Get the stored app_temp value as a string
 	std::string temperature = responseJSON.dump();
 
-	std::cout << temperature;
+	std::cout << temperature << std::endl << std::endl;
 
-	auto& slack = slack::create("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-	slack.chat.channel_username_iconemoji("#project", "Weather Bot", ":rain:");
-	slack.chat.postMessage("The current temperature is " + temperature + " degrees celcius.");
+	auto& slack = slack::create("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 
+	slack.chat.channel_username_iconemoji("#project", "Weather Bot", ":hamster:");
+
+
+	std::string a = "[{"color":"#36a64f","fallback":"Required plain - text summary of the attachment.","fields":[{"short":false,"title":"Priority","value":"High"}],"footer":"Slack API","footer_icon":"https://platform.slack-edge.com/img/default_application_icon.png","image_url":"http://my-website.com/path/to/image.jpg","pretext":"Daily Weather Report as of","text":"Time:   6AM\t9AM\t12PM\t3PM\t6PM\t9PM\t12AM\nTemp:\t t1\t \tt2\t\t t3\t\t t4 \t\t t5 \t   t6\t\t t7","thumb_url":"http://example.com/path/to/thumb.png","title_link":"https://api.slack.com/"}]"
+
+	auto json_attachments = R"([ 
+	{
+            "fallback": "Required plain-text summary of the attachment.",
+            "color": "#36a64f",
+            "pretext": "Daily Weather Report as of",
+            "title_link": "https://api.slack.com/",
+            "text": "Time:   6AM\t9AM\t12PM\t3PM\t6PM\t9PM\t12AM\nTemp:\t t1\t \tt2\t\t t3\t\t t4 \t\t t5 \t   t6\t\t t7",
+            "fields": [
+                {
+                    "title": "Priority",
+                    "value": "High",
+                    "short": false
+                }
+            ],
+            "image_url": "http://my-website.com/path/to/image.jpg",
+            "thumb_url": "http://example.com/path/to/thumb.png",
+            "footer": "Slack API",
+            "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png"
+            
+        }
+])"_json;
+
+
+	std::cout << json_attachments.dump() << std::endl << std::endl;
+
+
+	slack.chat.attachments = json_attachments;
+	auto response = slack.chat.postMessage();
+	std::cout << response << std::endl << std::endl;
+	
 
 	
 
