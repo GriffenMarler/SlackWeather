@@ -9,16 +9,17 @@ using std::vector;
  class MessageBlock {
 
 	 
-	 string description, iconLocation, currentTemp, dateTime, JSONtemplate;
+	 string date, JSONtemplate, cityName;
 
 	  vector<string> dailyTempForecast;
 	 
-	 
-
  public:
 	 MessageBlock() {
 
 	 }
+
+	 void setCityName(string city);
+	 string getCityName();
 
 
 	 void addTemperature(string temp);
@@ -36,8 +37,10 @@ using std::vector;
 	 string getCurrentTemp();
 	 void setCurrentTemp(string curT);
 
-	 string getDateTime();
-	 void setDateTime(string dateT);
+	 string getDate();
+	 void setDate(string dateT);
+
+	 void fillTemplate();
 
 	/* void updateCurrentConditions(string snow, string uv, string wind_spd);*/
 

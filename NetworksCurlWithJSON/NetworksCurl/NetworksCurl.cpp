@@ -19,6 +19,8 @@
 #include "slacking/json.hpp"
 #include <unordered_map>
 #include "MessageBlock.h"
+using std::cout;
+using std::endl;
 
 
 
@@ -33,144 +35,183 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::stri
 
 int main()
 {
-	// create a string to hold data
-	std::string readBuffer;
-	nlohmann::json responseJSON;
-	nlohmann::json FiveDayJSON;
-
-	////initializes a curl setup
-	CURL* hnd = curl_easy_init();
-
-	////sets the options of the curl object to send a get request with latitude and longitude paramaters from Spokane
-	curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "GET");
-	curl_easy_setopt(hnd, CURLOPT_URL, "https://weatherbit-v1-mashape.p.rapidapi.com/forecast/3hourly?units=I&lang=en&lat=47.66&lon=-117.42");
-	curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, &WriteCallback);
-	curl_easy_setopt(hnd, CURLOPT_WRITEDATA, &readBuffer);
-
-	curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L); //tell curl to output its progress
+	while (true) {
 
 
-	//// adds to the header of the curl item which api, and api-key is being used
-	struct curl_slist* headers = NULL;
-	headers = curl_slist_append(headers, "x-rapidapi-host: weatherbit-v1-mashape.p.rapidapi.com");
-	headers = curl_slist_append(headers, "x-rapidapi-key: 012fd474bamshbc8b59afe42a55ap1dd094jsn4a4772f6f401");
-	curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
+		// create a string to hold data
+		std::string readBuffer;
+		nlohmann::json responseJSON;
+		nlohmann::json FiveDayJSON;
 
-	CURLcode ret = curl_easy_perform(hnd);
+		////initializes a curl setup
+		CURL* hnd = curl_easy_init();
 
-	curl_easy_cleanup(hnd);
+		////sets the options of the curl object to send a get request with latitude and longitude paramaters from Spokane
+		curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "GET");
+		curl_easy_setopt(hnd, CURLOPT_URL, "https://weatherbit-v1-mashape.p.rapidapi.com/forecast/3hourly?units=I&lang=en&lat=47.66&lon=-117.42");
+		curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, &WriteCallback);
+		curl_easy_setopt(hnd, CURLOPT_WRITEDATA, &readBuffer);
 
-	
-	// String value to test with so we do not have to use API
-	//std::string teststring = "{\"data\": [{\"rh\":86,\"pod\" : \"n\",\"lon\" : -117.42,\"pres\" : 950.8,\"timezone\" : \"America\/Los_Angeles\",\"ob_time\" : \"2019-12-06 01:00\",\"country_code\" : \"US\",\"clouds\" : 100,\"ts\" : 1575594000,\"solar_rad\" : 0,\"state_code\" : \"WA\",\"city_name\" : \"Spokane\",\"wind_spd\" : 1.54,\"last_ob_time\" : \"2019-12-06T01:00:00\",\"wind_cdir_full\" : \"east-northeast\",\"wind_cdir\" : \"ENE\",\"slp\" : 1022.3,\"vis\" : 5,\"h_angle\" : -90,\"sunset\" : \"23:58\",\"dni\" : 0,\"dewpt\" : 3.7,\"snow\" : 0,\"uv\" : 0,\"precip\" : 0,\"wind_dir\" : 60,\"sunrise\" : \"15:22\",\"ghi\" : 0,\"dhi\" : 0,\"aqi\" : 14,\"lat\" : 47.66,\"weather\" : {\"icon\":\"c02n\",\"code\" : \"802\",\"description\" : \"Scattered clouds\"},\"datetime\" : \"2019-12-06:01\",\"temp\" : 5.9,\"station\" : \"2306P\",\"elev_angle\" : -10.04,\"app_temp\" : 4.9}] ,\"count\" : 1 }";
-
-	// Get rid of [ and ] brackets that were causing the JSON library to not correctly parse the data.
-	//readBuffer.erase(std::remove(readBuffer.begin(), readBuffer.end(), '['));
-	//readBuffer.erase(std::remove(readBuffer.begin(), readBuffer.end(), ']'));
-
-	// Insert the entire HTTP response message into a JSON object
-	FiveDayJSON = nlohmann::json::parse(readBuffer);
+		curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L); //tell curl to output its progress
 
 
-	// Holds an array of 40 weather objects. Each object holds data for a forecast 3 hours apart
-	nlohmann::json WeatherDataArray = FiveDayJSON.at("/data"_json_pointer);
+		//// adds to the header of the curl item which api, and api-key is being used
+		struct curl_slist* headers = NULL;
+		headers = curl_slist_append(headers, "x-rapidapi-host: weatherbit-v1-mashape.p.rapidapi.com");
+		headers = curl_slist_append(headers, "x-rapidapi-key: 012fd474bamshbc8b59afe42a55ap1dd094jsn4a4772f6f401");
+		curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
+
+		CURLcode ret = curl_easy_perform(hnd);
+
+		curl_easy_cleanup(hnd);
 
 
-	MessageBlock DailyTempForecast;
-	nlohmann::json DailyTemperature;
-	std::string TemperatureString;
+		// String value to test with so we do not have to use API
+		//std::string teststring = "{\"data\": [{\"rh\":86,\"pod\" : \"n\",\"lon\" : -117.42,\"pres\" : 950.8,\"timezone\" : \"America\/Los_Angeles\",\"ob_time\" : \"2019-12-06 01:00\",\"country_code\" : \"US\",\"clouds\" : 100,\"ts\" : 1575594000,\"solar_rad\" : 0,\"state_code\" : \"WA\",\"city_name\" : \"Spokane\",\"wind_spd\" : 1.54,\"last_ob_time\" : \"2019-12-06T01:00:00\",\"wind_cdir_full\" : \"east-northeast\",\"wind_cdir\" : \"ENE\",\"slp\" : 1022.3,\"vis\" : 5,\"h_angle\" : -90,\"sunset\" : \"23:58\",\"dni\" : 0,\"dewpt\" : 3.7,\"snow\" : 0,\"uv\" : 0,\"precip\" : 0,\"wind_dir\" : 60,\"sunrise\" : \"15:22\",\"ghi\" : 0,\"dhi\" : 0,\"aqi\" : 14,\"lat\" : 47.66,\"weather\" : {\"icon\":\"c02n\",\"code\" : \"802\",\"description\" : \"Scattered clouds\"},\"datetime\" : \"2019-12-06:01\",\"temp\" : 5.9,\"station\" : \"2306P\",\"elev_angle\" : -10.04,\"app_temp\" : 4.9}] ,\"count\" : 1 }";
 
-	// Retrieve the forecast from 6AM - Midnight every three hours and add it to our MessageBlock (6AM, 9AM, 12PM, 3PM, 6PM, 9PM, 12AM for a total of 7)
-	for (int i = 0; i < 7; i++) {
-		// New JSON object for each 3 hour interval
-		DailyTemperature = WeatherDataArray.at(i);
-		// Push back the value stored at temperature
-		TemperatureString = DailyTemperature.at("/temp"_json_pointer).dump();
-		DailyTempForecast.addTemperature(TemperatureString);
-	}
+		// Get rid of [ and ] brackets that were causing the JSON library to not correctly parse the data.
+		//readBuffer.erase(std::remove(readBuffer.begin(), readBuffer.end(), '['));
+		//readBuffer.erase(std::remove(readBuffer.begin(), readBuffer.end(), ']'));
 
-	std::string ForecastBlockTemplate = R"([
+		MessageBlock DailyTempForecast;
+
+		// Insert the entire HTTP response message into a JSON object
+		FiveDayJSON = nlohmann::json::parse(readBuffer);
+
+		string city = FiveDayJSON.at("/city_name"_json_pointer).dump();
+		city.erase(std::remove(city.begin(), city.end(), '"'));
+		city.erase(std::remove(city.begin(), city.end(), '"'));
+
+		DailyTempForecast.setCityName(city);
+
+		cout << endl << DailyTempForecast.getCityName() << endl;
+
+		// Holds an array of 40 weather objects. Each object holds data for a forecast 3 hours apart
+		nlohmann::json WeatherDataArray = FiveDayJSON.at("/data"_json_pointer);
+
+
+
+		nlohmann::json DailyTemperature;
+		std::string TemperatureString;
+
+
+
+		// Retrieve the forecast from 6AM - Midnight every three hours and add it to our MessageBlock (6AM, 9AM, 12PM, 3PM, 6PM, 9PM, 12AM for a total of 7)
+		for (int i = 0; i < 7; i++) {
+			// New JSON object for each 3 hour interval
+			DailyTemperature = WeatherDataArray.at(i);
+			// Push back the value stored at temperature
+			TemperatureString = DailyTemperature.at("/temp"_json_pointer).dump();
+			DailyTempForecast.addTemperature(TemperatureString);
+		}
+
+		std::string DateString;
+		nlohmann::json DailyDate;
+
+		DailyDate = WeatherDataArray.at(0);
+		DateString = DailyDate.at("/timestamp_utc"_json_pointer).dump();
+
+
+		DateString.erase(std::remove(DateString.begin(), DateString.end(), '"'));
+		DateString.erase(std::remove(DateString.begin(), DateString.end(), '"'));
+		DateString.erase(DateString.begin() + 10, DateString.end());
+
+		DailyTempForecast.setDate(DateString);
+
+
+
+		// "text": "Time:   6AM\t9AM\t12PM\t3PM\t6PM\t9PM\t12AM\nTemp:\t t1\t \tt2\t\t t3\t\t t4 \t\t t5 \t   t6\t\t t7",
+
+		std::string ForecastBlockTemplate = R"([
 	{
-            "fallback": "Required plain-text summary of the attachment.",
+            "fallback": "Required plain-text summary of the attachment .",
             "color": "#36a64f",
-            "pretext": "Daily Weather Report as of",
+            "pretext": "Daily Weather Report for on",
             "title_link": "https://api.slack.com/",
-            "text": "Time:   6AM\t9AM\t12PM\t3PM\t6PM\t9PM\t12AM\nTemp:\t t1\t \tt2\t\t t3\t\t t4 \t\t t5 \t   t6\t\t t7",
+            "text": "Time:    \t6AM\t9AM\t12PM\t3PM\t6PM \t9PM\t12AM\nTemp(\u2109):",
             "fields": [
-                {
-                    "title": "Priority",
-                    "value": "High",
-                    "short": false
-                }
             ],
             "image_url": "http://my-website.com/path/to/image.jpg",
             "thumb_url": "http://example.com/path/to/thumb.png",
-            "footer": "Slack API",
-            "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png"
+            "footer": "Powered by Weatherbit IO and Slack API",
+            "footer_icon": "https://kodi.tv/sites/default/files/styles/medium_crop/public/addon_assets/weather.weatherbit.io/icon/icon.png?itok=1bUxPgiD"
             
         }
 ])";
 
 
+		//pass the block template string to our Message Block object
+		DailyTempForecast.setJSONtemplate(ForecastBlockTemplate);
 
-	// Start slack session with bot token
-	auto& slack = slack::create("xoxb-862360242919-862955384838-QHOKNT5eajwnBjE8kxWlITzR");
+		//populate message block with temperatures
+		DailyTempForecast.fillTemplate();
 
-	// Set username and channel
-	slack.chat.channel_username_iconemoji("#project", "Weather Bot", ":hamster:");
 
-	// Create Attachment Block
-	auto json_attachments = nlohmann::json::parse(ForecastBlockTemplate);
+		// Start slack session with bot token
+		auto& slack = slack::create("xoxb-862360242919-862955384838-Siqz3hAXUdBD6dtYaFzlbdM5");
 
-	nlohmann::json AttachmentDump = json_attachments;
+		// Set username and channel
+		slack.chat.channel_username_iconemoji("#project", "Weather Bot", ":hamster:");
 
-	std::cout << "Attachment Dump:" << std::endl;
-	std::cout << std::endl;
-	std::cout << AttachmentDump.dump() << std::endl;
+
+		cout << endl << DailyTempForecast.getJSONtemplate();
+
+		// Create Attachment Block by parsing our string that stores the temperatures for all 7 intervals
+		auto json_attachments = nlohmann::json::parse(DailyTempForecast.getJSONtemplate());
+
+
+		// Created to output Attachment data for debugging purposes
+		nlohmann::json AttachmentDump = json_attachments;
+
+		std::cout << "Attachment Dump:" << std::endl;
+		std::cout << std::endl;
+		std::cout << AttachmentDump.dump() << std::endl;
+
+
+
+		// Send Attachments and listen for response from Slack
+		slack.chat.attachments = json_attachments;
+		auto response = slack.chat.postMessage();
+		std::cout << response << std::endl << std::endl;
+
+		// "temp"   
+
+		/*// Grab all of the key value pairs inside the "data" section
+		responseJSON = responseJSON.at("/data"_json_pointer);
+
+		std::cout << responseJSON.dump() << std::endl;
+		std::cout << responseJSON.size() << std::endl;
+
+		// Get the value for "app_temp" and store it inside responseJSON
+		responseJSON = responseJSON.at("/app_temp"_json_pointer);
+		std::cout << responseJSON.dump();
+
+		// Get the stored app_temp value as a string
+		std::string temperature = responseJSON.dump();
+
+		std::cout << temperature << std::endl << std::endl;
+
+
+
+
+		//std::string a = "[{"color":"#36a64f","fallback":"Required plain - text summary of the attachment.","fields":[{"short":false,"title":"Priority","value":"High"}],"footer":"Slack API","footer_icon":"https://platform.slack-edge.com/img/default_application_icon.png","image_url":"http://my-website.com/path/to/image.jpg","pretext":"Daily Weather Report as of","text":"Time:   6AM\t9AM\t12PM\t3PM\t6PM\t9PM\t12AM\nTemp:\t t1\t \tt2\t\t t3\t\t t4 \t\t t5 \t   t6\t\t t7","thumb_url":"http://example.com/path/to/thumb.png","title_link":"https://api.slack.com/"}]"
+
+
+
+
+
+		std::cout << json_attachments.dump() << std::endl << std::endl;
+
+
+
+
+
+	*/
+		std::this_thread::sleep_for(std::chrono::seconds(10));
 	
-	
 
-	
-	slack.chat.attachments = json_attachments;
-	auto response = slack.chat.postMessage();
-	std::cout << response << std::endl << std::endl;
-	
-	// "temp"   
-
-	/*// Grab all of the key value pairs inside the "data" section
-	responseJSON = responseJSON.at("/data"_json_pointer);
-
-	std::cout << responseJSON.dump() << std::endl;
-	std::cout << responseJSON.size() << std::endl;
-
-	// Get the value for "app_temp" and store it inside responseJSON
-	responseJSON = responseJSON.at("/app_temp"_json_pointer);
-	std::cout << responseJSON.dump();
-
-	// Get the stored app_temp value as a string
-	std::string temperature = responseJSON.dump();
-
-	std::cout << temperature << std::endl << std::endl;
-
-
-
-
-	//std::string a = "[{"color":"#36a64f","fallback":"Required plain - text summary of the attachment.","fields":[{"short":false,"title":"Priority","value":"High"}],"footer":"Slack API","footer_icon":"https://platform.slack-edge.com/img/default_application_icon.png","image_url":"http://my-website.com/path/to/image.jpg","pretext":"Daily Weather Report as of","text":"Time:   6AM\t9AM\t12PM\t3PM\t6PM\t9PM\t12AM\nTemp:\t t1\t \tt2\t\t t3\t\t t4 \t\t t5 \t   t6\t\t t7","thumb_url":"http://example.com/path/to/thumb.png","title_link":"https://api.slack.com/"}]"
-
-	
-
-	
-
-	std::cout << json_attachments.dump() << std::endl << std::endl;
-
-
-
-
-	
-*/
-	system("pause");
+	}
 	return 0;
-
 }
 
 
