@@ -2,6 +2,36 @@
 
 
 
+void MessageBlock::setSnow(string snow)
+{
+	Snow = snow;
+}
+
+string MessageBlock::getSnow()
+{
+	return Snow;
+}
+
+void MessageBlock::setUV(string uv)
+{
+	UV = uv;
+}
+
+string MessageBlock::getUV()
+{
+	return UV;
+}
+
+void MessageBlock::setWind_Spd(string wind_spd)
+{
+	Wind_Spd = wind_spd;
+}
+
+string MessageBlock::getWind_spd()
+{
+	return Wind_Spd;
+}
+
 void MessageBlock::setCityName(string city)
 {
 	cityName = city;
@@ -97,6 +127,40 @@ void MessageBlock::fillTemplate()
 
 	JSONtemplate.insert(position + 2, " " + date);
 
+}
+
+void MessageBlock::fillConditionTemplate()
+{
+	// Find the position to insert the city name
+	string::size_type City_Position = JSONtemplate.find("area");
+
+	JSONtemplate.insert(City_Position - 1, " " + cityName);
+
+	// Find position where we need to insert critical weather text
+	string::size_type position = JSONtemplate.find("\"text\"");
+
+	// Store the initial size of the template in case more than one critical weather condition is present at the same time
+	int sizehold = JSONtemplate.size();
+
+	// Add 8 to get in correct position for JSON format
+	position = position + 8;
+
+
+	if (std::stoi(Snow) > 5) {
+	JSONtemplate.insert(position, "Snow reported falling at (mm/h): " + Snow +"\\n");
+	}
+
+	if (std::stoi(Wind_Spd) > 0) {
+		// Adjust the size if the JSON template changes. Result of below equation will be 0 if snow is not present. 
+		int sizeadjust = JSONtemplate.size() - sizehold;
+		JSONtemplate.insert(position + sizeadjust, "Damaging winds reported at: " + Wind_Spd + "\\n");
+	}
+
+	if (std::stoi(UV) == 0) {
+		// Adjust the size if the JSON template changes. Result of below equation will be 0 if snow or high wind speed is not present. 
+		int sizeadjust = JSONtemplate.size() - sizehold;
+		JSONtemplate.insert(position + sizeadjust, "Notable UV Level reported: " + UV + " Take Precaution when outside." + "\\n");
+	}
 }
 
 //void MessageBlock::updateCurrentConditions(string desc, string iconLoc, string curTemp, string dateT)

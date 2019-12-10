@@ -37,7 +37,96 @@ int main()
 {
 	while (true) {
 
+		// create a string to hold data
+		std::string ConditionreadBuffer;
+		nlohmann::json ConditionresponseJSON;
+		nlohmann::json ConditionDataJSON;
 
+		////initializes a curl setup
+		CURL* Condition = curl_easy_init();
+
+		////sets the options of the curl object to send a get request with latitude and longitude paramaters from Spokane
+		curl_easy_setopt(Condition, CURLOPT_CUSTOMREQUEST, "GET");
+		curl_easy_setopt(Condition, CURLOPT_URL, "https://weatherbit-v1-mashape.p.rapidapi.com/current?units=I&lang=en&lon=-117.42&lat=47.66");
+		curl_easy_setopt(Condition, CURLOPT_WRITEFUNCTION, &WriteCallback);
+		curl_easy_setopt(Condition, CURLOPT_WRITEDATA, &ConditionreadBuffer);
+
+		curl_easy_setopt(Condition, CURLOPT_VERBOSE, 1L); //tell curl to output its progress
+
+
+
+		//// adds to the header of the curl item which api, and api-key is being used
+		struct curl_slist* Conditionheaders = NULL;
+		Conditionheaders = curl_slist_append(Conditionheaders, "x-rapidapi-host: weatherbit-v1-mashape.p.rapidapi.com");
+		Conditionheaders = curl_slist_append(Conditionheaders, "x-rapidapi-key: 012fd474bamshbc8b59afe42a55ap1dd094jsn4a4772f6f401");
+		curl_easy_setopt(Condition, CURLOPT_HTTPHEADER, Conditionheaders);
+
+		CURLcode Conditionret = curl_easy_perform(Condition);
+
+		curl_easy_cleanup(Condition);
+
+		// Get rid of the extra [ and ] that were affecting JSON parsing due to only a single entity being returned
+		ConditionreadBuffer.erase(std::remove(ConditionreadBuffer.begin(), ConditionreadBuffer.end(), '['));
+		ConditionreadBuffer.erase(std::remove(ConditionreadBuffer.begin(), ConditionreadBuffer.end(), ']'));
+
+		// Put the entire response into a JSON object
+		ConditionresponseJSON = nlohmann::json::parse(ConditionreadBuffer);
+
+		// Move into the data section of the json
+		ConditionDataJSON = ConditionresponseJSON.at("/data"_json_pointer);
+
+		// Retrieve city, snow, UV, and Wind_spd from the current weather data
+		string snow = ConditionDataJSON.at("/snow"_json_pointer).dump();
+		string UV = ConditionDataJSON.at("/uv"_json_pointer).dump();
+		string wind_spd = ConditionDataJSON.at("/wind_spd"_json_pointer).dump();
+		string ConditionCity = ConditionDataJSON.at("/city_name"_json_pointer).dump();
+
+		// Get rid of extra quotes that are effecting JSON parsing
+		ConditionCity.erase(std::remove(ConditionCity.begin(), ConditionCity.end(), '"'));
+		ConditionCity.erase(std::remove(ConditionCity.begin(), ConditionCity.end(), '"'));
+
+		MessageBlock SevereWeatherCheck(snow, UV, wind_spd, ConditionCity);
+
+		// Critical weather alert attachment string
+		string SevereWeatherTemplate = R"([
+        {
+            "fallback": "Required plain-text summary of the attachment.",
+            "color": "#86C5DA",
+            "pretext": "Critical Weather Alert reported in area",
+            "title_link": "https://api.slack.com/",
+            "text":" ",
+            "thumb_url": "",
+            "footer": "Powered by Weatherbit IO and Slack API",
+            "footer_icon": "https://kodi.tv/sites/default/files/styles/medium_crop/public/addon_assets/weather.weatherbit.io/icon/icon.png?itok=1bUxPgiD"
+        }
+    
+])";
+		// pass the block template string to our Message Block object
+		SevereWeatherCheck.setJSONtemplate(SevereWeatherTemplate);
+
+		SevereWeatherCheck.fillConditionTemplate();
+
+		auto& ConditionSlack = slack::create("xoxb-862360242919-862955384838-DLPqfA0GaqPAEGrjButYlUI4");
+
+		ConditionSlack.chat.channel_username_iconemoji("#project", "Weather Alert Bot", ":ghost");
+
+		std::cout << SevereWeatherCheck.getJSONtemplate() << endl;
+
+		auto Condition_attachments = nlohmann::json::parse(SevereWeatherCheck.getJSONtemplate());
+
+		nlohmann::json ConditionDump = Condition_attachments;
+
+		// Output for debugging purposes
+		std::cout << "Condition Dump:" << std::endl;
+		std::cout << std::endl;
+		std::cout << ConditionDump.dump(4) << std::endl;
+
+		ConditionSlack.chat.attachments = Condition_attachments;
+		auto ConditionResponse = ConditionSlack.chat.postMessage();
+		std::cout << ConditionResponse << endl << endl;
+
+
+		/////////////////////////////////// PART 2: 3 hour interval forecast
 		// create a string to hold data
 		std::string readBuffer;
 		nlohmann::json responseJSON;
@@ -54,6 +143,7 @@ int main()
 
 		curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L); //tell curl to output its progress
 
+	
 
 		//// adds to the header of the curl item which api, and api-key is being used
 		struct curl_slist* headers = NULL;
@@ -148,7 +238,7 @@ int main()
 
 
 		// Start slack session with bot token
-		auto& slack = slack::create("xoxb-862360242919-862955384838-Siqz3hAXUdBD6dtYaFzlbdM5");
+		auto& slack = slack::create("xoxb-862360242919-862955384838-DLPqfA0GaqPAEGrjButYlUI4");
 
 		// Set username and channel
 		slack.chat.channel_username_iconemoji("#project", "Weather Bot", ":hamster:");
@@ -173,6 +263,9 @@ int main()
 		slack.chat.attachments = json_attachments;
 		auto response = slack.chat.postMessage();
 		std::cout << response << std::endl << std::endl;
+
+
+
 
 		// "temp"   
 
@@ -207,7 +300,7 @@ int main()
 
 
 	*/
-		std::this_thread::sleep_for(std::chrono::seconds(10));
+		std::this_thread::sleep_for(std::chrono::hours(1));
 	
 
 	}
