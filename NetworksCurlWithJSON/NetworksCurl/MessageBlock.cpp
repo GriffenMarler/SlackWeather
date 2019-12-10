@@ -107,17 +107,17 @@ void MessageBlock::fillConditionTemplate()
 	position = position + 8;
 
 
-	if (std::stoi(Snow) > 5) {
-	JSONtemplate.insert(position, "Snow reported falling at (mm/h): " + Snow +"\\n");
+	if (std::stoi(Snow) > 0) {
+		JSONtemplate.insert(position, "Snow reported falling at: " + Snow +" in/hr\\n");
 	}
 
-	if (std::stoi(Wind_Spd) > 0) {
+	if (std::stoi(Wind_Spd) > 50) {
 		// Adjust the size if the JSON template changes. Result of below equation will be 0 if snow is not present. 
 		int sizeadjust = JSONtemplate.size() - sizehold;
-		JSONtemplate.insert(position + sizeadjust, "Damaging winds reported at: " + Wind_Spd + "\\n");
+		JSONtemplate.insert(position + sizeadjust, "Damaging winds reported at: " + Wind_Spd + " mph/hr\\n");
 	}
 
-	if (std::stoi(UV) == 0) {
+	if (std::stoi(UV) > 3) {
 		// Adjust the size if the JSON template changes. Result of below equation will be 0 if snow or high wind speed is not present. 
 		int sizeadjust = JSONtemplate.size() - sizehold;
 		JSONtemplate.insert(position + sizeadjust, "Notable UV Level reported: " + UV + " Take Precaution when outside." + "\\n");

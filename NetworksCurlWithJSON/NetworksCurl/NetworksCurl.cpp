@@ -45,11 +45,11 @@ static size_t WriteCallback(void*, size_t, size_t, string*);
 
 // This is the Oauth access token needed for the slack API. The channel workspace is also specified when generating this token
 // WARNING: if posted to public domain such as github, slack will revoke access and another token will need to be generated
-string slackAPIBotKey = "xxxx";
+string slackAPIBotKey = "";
 
 // This is the Oauth access token needed for the weatherbit API hosted on the rapid API platform
-// Recommended to comment this out when uploading to public domain as a security measure
-const char* rapidAPIKey = "xxxxxxx";
+// Recommended to take this out when uploading to public domain as a security measure
+const char* rapidAPIKey = "";
 
 
 
@@ -73,37 +73,40 @@ int main()
 		string wind_spd = currentWeatherDataJSON.at("/wind_spd"_json_pointer).dump();
 		string ConditionCity = currentWeatherDataJSON.at("/city_name"_json_pointer).dump();
 
-		// Get rid of extra quotes that are effecting JSON parsing
-		ConditionCity.erase(std::remove(ConditionCity.begin(), ConditionCity.end(), '"'));
-		ConditionCity.erase(std::remove(ConditionCity.begin(), ConditionCity.end(), '"'));
+		// only send a severe weather update if certain conditions are met
+		if (std::stoi(snow) > 0 || std::stoi(UV) > 3 || std::stoi(wind_spd) > 50) {
 
-		// using weather conditions as a seed, generate a new message block
-		MessageBlock SevereWeatherCheck(snow, UV, wind_spd, ConditionCity);
+			// Get rid of extra quotes that are effecting JSON parsing
+			ConditionCity.erase(std::remove(ConditionCity.begin(), ConditionCity.end(), '"'));
+				ConditionCity.erase(std::remove(ConditionCity.begin(), ConditionCity.end(), '"'));
 
-		// This JSON object is used to create stylized message blocks in slack
-		// https://api.slack.com/tools/block-kit-builder?mode=message&blocks=%5B%5D
-		// Critical weather alert attachment string
-		string SevereWeatherTemplate = R"([
-        {
-            "fallback": "Required plain-text summary of the attachment.",
-            "color": "#86C5DA",
-            "pretext": "Critical Weather Alert reported in area",
-            "title_link": "https://api.slack.com/",
-            "text":" ",
-            "thumb_url": "",
-            "footer": "Powered by Weatherbit IO and Slack API",
-            "footer_icon": "https://kodi.tv/sites/default/files/styles/medium_crop/public/addon_assets/weather.weatherbit.io/icon/icon.png?itok=1bUxPgiD"
-        }
-		])";
+				// using weather conditions as a seed, generate a new message block
+				MessageBlock SevereWeatherCheck(snow, UV, wind_spd, ConditionCity);
 
-		// pass the block template string to our Message Block object
-		SevereWeatherCheck.setJSONtemplate(SevereWeatherTemplate);
-		// merge template with the weather conditons
-		SevereWeatherCheck.fillConditionTemplate();
+				// This JSON object is used to create stylized message blocks in slack
+				// https://api.slack.com/tools/block-kit-builder?mode=message&blocks=%5B%5D
+				// Critical weather alert attachment string
+				string SevereWeatherTemplate = R"([
+			   {
+			    "fallback": "Required plain-text summary of the attachment.",
+			    "color": "#86C5DA",
+				"pretext": "Critical Weather Alert reported in area",
+			    "title_link": "https://api.slack.com/",
+			    "text":" ",
+			    "thumb_url": "",
+			    "footer": "Powered by Weatherbit IO and Slack API",
+			    "footer_icon": "https://kodi.tv/sites/default/files/styles/medium_crop/public/addon_assets/weather.weatherbit.io/icon/icon.png?itok=1bUxPgiD"
+			  }
+			  ])";
+ 
+			// pass the block template string to our Message Block object
+			SevereWeatherCheck.setJSONtemplate(SevereWeatherTemplate);
+			// merge template with the weather conditons
+			SevereWeatherCheck.fillConditionTemplate();
 
-		// Send severe weather message to slack
-		sendSlackMessage(SevereWeatherCheck, "#severe_weather_alerts");
-
+			// Send severe weather message to slack
+			sendSlackMessage(SevereWeatherCheck, "#severe_weather_alerts");
+		}
 
 
 		////////////////////////////////////////////////////////////
@@ -132,7 +135,7 @@ int main()
 		std::string TemperatureString;
 
 		// Retrieve the forecast from 7AM - 1AM every three hours and add it to our MessageBlock (7AM, 10AM, 1PM, 4PM, 7PM, 10PM, 1AM for a total of 7)
-		for (int i = 0; i < 7; i++) {
+		for (int i = 2; i < 9; i++) {
 			// New JSON object for each 3 hour interval
 			DailyTemperature = WeatherDataArray.at(i);
 			// Push back the value stored at temperature

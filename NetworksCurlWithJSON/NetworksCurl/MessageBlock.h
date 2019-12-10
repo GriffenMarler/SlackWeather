@@ -6,6 +6,9 @@
 using std::string;
 using std::vector;
 
+
+// This class is used to contain all the relevant attributes that are used to create a message block to send to a slack channel
+// It contains several weather attributes as well as the JSON template for message block for easy merging of the two before sending
  class MessageBlock {
 
 	 
