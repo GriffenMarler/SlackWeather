@@ -39,10 +39,14 @@ void sendSlackMessage(MessageBlock Block, string channelName);
 static size_t WriteCallback(void*, size_t, size_t, string*);
 
 //////// global variables ////////
+
 // This is the Oauth access token needed for the slack API. The channel workspace is also specified when generating this token
 // WARNING: if posted to public domain such as github, slack will revoke access and another token will need to be generated
-string slackAPIBotKey = "xoxb-862360242919-862955384838-mIi7hU0BWW3CYXPfPuv3OwwV";
+string slackAPIBotKey = "xoxb-862360242919-862955384838-tvFsKXQ6JoGToyPcBBQIPZx4";
 
+// This is the Oauth access token needed for the weatherbit API hosted on the rapid API platform
+// Recommended to comment this out when uploading to public domain as a security measure
+const char* rapidAPIKey = "x-rapidapi-key: 012fd474bamshbc8b59afe42a55ap1dd094jsn4a4772f6f401";
 
 
 int main()
@@ -207,7 +211,7 @@ void sendSlackMessage(MessageBlock Block, string channelName) {
 
 	// post the message to slack and store the response message
 	auto ConditionResponse = ConditionSlack.chat.postMessage();
-	std::cout << ConditionResponse << endl << endl;
+	//std::cout << ConditionResponse << endl << endl;
 
 }
 
@@ -232,7 +236,7 @@ nlohmann::json getFiveDayForecast() {
 	//// adds to the header of the curl item which api, and api-key is being used
 	struct curl_slist* headers = NULL;
 	headers = curl_slist_append(headers, "x-rapidapi-host: weatherbit-v1-mashape.p.rapidapi.com");
-	headers = curl_slist_append(headers, "x-rapidapi-key: 012fd474bamshbc8b59afe42a55ap1dd094jsn4a4772f6f401");
+	headers = curl_slist_append(headers, rapidAPIKey);
 	curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
 
 	// send the request and store the response code
