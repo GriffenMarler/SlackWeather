@@ -55,62 +55,11 @@ const char* rapidAPIKey = "";
 
 int main()
 {
-	
+
 	while (true) {
-		///////////////////////////////////////////////////////////
-		// PART 1: Severe Weather Alerts
-		///////////////////////////////////////////////////////////
-
-		//store the raw JSON holding current weather data from WeatherBit
-		nlohmann::json currentWeatherJSON = getCurrentWeatherData();
-
-		// Move into the data section of the json
-		nlohmann::json currentWeatherDataJSON = currentWeatherJSON.at("/data"_json_pointer);
-
-		// Retrieve city, snow, UV, and Wind_spd from the current weather data
-		string snow = currentWeatherDataJSON.at("/snow"_json_pointer).dump();
-		string UV = currentWeatherDataJSON.at("/uv"_json_pointer).dump();
-		string wind_spd = currentWeatherDataJSON.at("/wind_spd"_json_pointer).dump();
-		string ConditionCity = currentWeatherDataJSON.at("/city_name"_json_pointer).dump();
-
-		// only send a severe weather update if certain conditions are met
-		if (std::stoi(snow) > 0 || std::stoi(UV) > 3 || std::stoi(wind_spd) > 50) {
-
-			// Get rid of extra quotes that are effecting JSON parsing
-			ConditionCity.erase(std::remove(ConditionCity.begin(), ConditionCity.end(), '"'));
-				ConditionCity.erase(std::remove(ConditionCity.begin(), ConditionCity.end(), '"'));
-
-				// using weather conditions as a seed, generate a new message block
-				MessageBlock SevereWeatherCheck(snow, UV, wind_spd, ConditionCity);
-
-				// This JSON object is used to create stylized message blocks in slack
-				// https://api.slack.com/tools/block-kit-builder?mode=message&blocks=%5B%5D
-				// Critical weather alert attachment string
-				string SevereWeatherTemplate = R"([
-			   {
-			    "fallback": "Required plain-text summary of the attachment.",
-			    "color": "#86C5DA",
-				"pretext": "Critical Weather Alert reported in area",
-			    "title_link": "https://api.slack.com/",
-			    "text":" ",
-			    "thumb_url": "",
-			    "footer": "Powered by Weatherbit IO and Slack API",
-			    "footer_icon": "https://kodi.tv/sites/default/files/styles/medium_crop/public/addon_assets/weather.weatherbit.io/icon/icon.png?itok=1bUxPgiD"
-			  }
-			  ])";
- 
-			// pass the block template string to our Message Block object
-			SevereWeatherCheck.setJSONtemplate(SevereWeatherTemplate);
-			// merge template with the weather conditons
-			SevereWeatherCheck.fillConditionTemplate();
-
-			// Send severe weather message to slack
-			sendSlackMessage(SevereWeatherCheck, "#severe_weather_alerts");
-		}
-
 
 		////////////////////////////////////////////////////////////
-		// PART 2: Daily Temperature Forecast with 3 hour intervals
+		// PART 1: Daily Temperature Forecast with 3 hour intervals
 		////////////////////////////////////////////////////////////
 
 		// send a GET request to the WeatherBit API and store response as a JSON
@@ -185,10 +134,65 @@ int main()
 		// send stylized forecast message to the daily_forecast channel
 		sendSlackMessage(DailyTempForecast, "#daily_forecast");
 
+		// once the daily forecast is sent to slack, check for severe weather updates every hour until the next day
+		for (int i = 0; i < 24; i++) {
 
+			///////////////////////////////////////////////////////////
+			// PART 2: Severe Weather Alerts
+			///////////////////////////////////////////////////////////
 
+			//store the raw JSON holding current weather data from WeatherBit
+			nlohmann::json currentWeatherJSON = getCurrentWeatherData();
 
-		std::this_thread::sleep_for(std::chrono::seconds(10));
+			// Move into the data section of the json
+			nlohmann::json currentWeatherDataJSON = currentWeatherJSON.at("/data"_json_pointer);
+
+			// Retrieve city, snow, UV, and Wind_spd from the current weather data
+			string snow = currentWeatherDataJSON.at("/snow"_json_pointer).dump();
+			string UV = currentWeatherDataJSON.at("/uv"_json_pointer).dump();
+			string wind_spd = currentWeatherDataJSON.at("/wind_spd"_json_pointer).dump();
+			string ConditionCity = currentWeatherDataJSON.at("/city_name"_json_pointer).dump();
+
+			// only send a severe weather update if certain conditions are met
+			if (std::stoi(snow) > 0 || std::stoi(UV) > 3 || std::stoi(wind_spd) > 50) {
+
+				// Get rid of extra quotes that are effecting JSON parsing
+				ConditionCity.erase(std::remove(ConditionCity.begin(), ConditionCity.end(), '"'));
+				ConditionCity.erase(std::remove(ConditionCity.begin(), ConditionCity.end(), '"'));
+
+				// using weather conditions as a seed, generate a new message block
+				MessageBlock SevereWeatherCheck(snow, UV, wind_spd, ConditionCity);
+
+				// This JSON object is used to create stylized message blocks in slack
+				// https://api.slack.com/tools/block-kit-builder?mode=message&blocks=%5B%5D
+				// Critical weather alert attachment string
+				string SevereWeatherTemplate = R"([
+			   {
+			    "fallback": "Required plain-text summary of the attachment.",
+			    "color": "#86C5DA",
+				"pretext": "Critical Weather Alert reported in area",
+			    "title_link": "https://api.slack.com/",
+			    "text":" ",
+			    "thumb_url": "",
+			    "footer": "Powered by Weatherbit IO and Slack API",
+			    "footer_icon": "https://kodi.tv/sites/default/files/styles/medium_crop/public/addon_assets/weather.weatherbit.io/icon/icon.png?itok=1bUxPgiD"
+			  }
+			  ])";
+
+				// pass the block template string to our Message Block object
+				SevereWeatherCheck.setJSONtemplate(SevereWeatherTemplate);
+				// merge template with the weather conditons
+				SevereWeatherCheck.fillConditionTemplate();
+
+				// Send severe weather message to slack
+				sendSlackMessage(SevereWeatherCheck, "#severe_weather_alerts");
+			}
+
+			//cout << "One 'hour' has passed" << endl;
+			// sleep for one hour
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+
+		}
 
 	}
 	return 0;
