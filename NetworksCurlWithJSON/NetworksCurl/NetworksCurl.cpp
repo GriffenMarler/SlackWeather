@@ -238,7 +238,7 @@ nlohmann::json getFiveDayForecast() {
 	////initializes a curl setup
 	CURL* hnd = curl_easy_init();
 
-	////sets the options of the curl object to send a get request with latitude and longitude paramaters from Spokane
+	////sets the options of the curl object to send a get request with latitude and longitude paramaters from specified city
 	curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "GET");
 	curl_easy_setopt(hnd, CURLOPT_URL, "https://weatherbit-v1-mashape.p.rapidapi.com/forecast/3hourly?units=I&lang=en&lat=45.52566&lon=-122.6666");
 	curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, &WriteCallback);
@@ -274,9 +274,9 @@ nlohmann::json getCurrentWeatherData() {
 	////initializes a curl setup
 	CURL* Condition = curl_easy_init();
 
-	////sets the options of the curl object to send a get request with latitude and longitude paramaters from Spokane
+	////sets the options of the curl object to send a get request with latitude and longitude paramaters from specified city
 	curl_easy_setopt(Condition, CURLOPT_CUSTOMREQUEST, "GET");
-	curl_easy_setopt(Condition, CURLOPT_URL, "https://weatherbit-v1-mashape.p.rapidapi.com/current?units=I&lang=en&lon=-117.42&lat=47.66");
+	curl_easy_setopt(Condition, CURLOPT_URL, "https://weatherbit-v1-mashape.p.rapidapi.com/current?units=I&lang=en&lon=-122.6666&lat=45.52566");
 	curl_easy_setopt(Condition, CURLOPT_WRITEFUNCTION, &WriteCallback);
 	curl_easy_setopt(Condition, CURLOPT_WRITEDATA, &ConditionreadBuffer);
 	curl_easy_setopt(Condition, CURLOPT_VERBOSE, 1L); //tell curl to output its progress
