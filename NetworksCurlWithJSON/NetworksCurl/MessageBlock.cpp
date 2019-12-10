@@ -66,46 +66,7 @@ void MessageBlock::setJSONtemplate(string Template)
 {
 	JSONtemplate = Template;
 }
-//
-//string MessageBlock::getDescription()
-//{
-//	return description;
-//}
-//
-//void MessageBlock::setDescription(string des)
-//{
-//	description = des;
-//}
-//
-//string MessageBlock::getIconLocation()
-//{
-//	return iconLocation;
-//}
-//
-//void MessageBlock::setIconLocation(string iconLoc)
-//{
-//	iconLocation = iconLoc;
-//}
-//
-//string MessageBlock::getCurrentTemp()
-//{
-//	return currentTemp;
-//}
-//
-//void MessageBlock::setCurrentTemp(string curT)
-//{
-//	currentTemp = curT;
-//}
-//
-//string MessageBlock::getDateTime()
-//{
-//	return dateTime;
-//}
-//
-//void MessageBlock::setDateTime(string dateT)
-//{
-//	dateTime = dateT;
-//}
+
 
 
 // populates the block template with the temperature values throughout the day

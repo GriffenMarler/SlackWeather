@@ -47,16 +47,6 @@ using std::vector;
 	 string getJSONtemplate();
 	 void setJSONtemplate(string Template);
 
-
-	 string getDescription();
-	 void setDescription(string des);
-
-	 string getIconLocation();
-	 void setIconLocation(string iconLoc);
-
-	 string getCurrentTemp();
-	 void setCurrentTemp(string curT);
-
 	 string getDate();
 	 void setDate(string dateT);
 

@@ -17,7 +17,6 @@
 #pragma comment (lib, "advapi32.lib")
 #include"slacking/slacking.hpp"
 #include "slacking/json.hpp"
-#include <unordered_map>
 #include "MessageBlock.h"
 using std::cout;
 using std::endl;
@@ -29,6 +28,10 @@ using std::endl;
  - Creating stylized messages with slack block builder tool: https://api.slack.com/tools/block-kit-builder?mode=message&blocks=%5B%5D
  - Defining the required WriteCallBack function used in the WeatherBit API options: https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
  - RapidAPI link to WeatherBit IO API where endpoints were tested and starter code was referenced: https://rapidapi.com/weatherbit/api/weather
+ - Slacking library used to create slack BOT that can send messages to designated workspace: https://github.com/coin-au-carre/slacking
+ - libCurl library used to easily format HTTP request message that were sent to WeatherBit API: https://curl.haxx.se/libcurl/c/libcurl.html
+ - libCurl youtube tutorial used to help set up the library using headers: https://www.youtube.com/watch?v=q_mXVZ6VJs4
+ - JSON library used to parse data received from WeatherBit and form messages to send to slack: https://github.com/nlohmann/json
 
 */
 
@@ -42,11 +45,12 @@ static size_t WriteCallback(void*, size_t, size_t, string*);
 
 // This is the Oauth access token needed for the slack API. The channel workspace is also specified when generating this token
 // WARNING: if posted to public domain such as github, slack will revoke access and another token will need to be generated
-string slackAPIBotKey = "xoxb-862360242919-862955384838-tvFsKXQ6JoGToyPcBBQIPZx4";
+string slackAPIBotKey = "xxxx";
 
 // This is the Oauth access token needed for the weatherbit API hosted on the rapid API platform
 // Recommended to comment this out when uploading to public domain as a security measure
-const char* rapidAPIKey = "x-rapidapi-key: 012fd474bamshbc8b59afe42a55ap1dd094jsn4a4772f6f401";
+const char* rapidAPIKey = "xxxxxxx";
+
 
 
 int main()
@@ -160,7 +164,7 @@ int main()
             "color": "#36a64f",
             "pretext": "Daily Weather Report for on",
             "title_link": "https://api.slack.com/",
-            "text": "Time:    \t6AM\t9AM\t12PM\t3PM\t6PM \t9PM\t12AM\nTemp(\u2109):",
+            "text": "Time:    \t7AM\t10AM\t1PM\t4PM\t7PM \t10PM\t1AM\nTemp(\u2109):",
             "fields": [
             ],
             "image_url": "http://my-website.com/path/to/image.jpg",
@@ -192,6 +196,7 @@ int main()
 // Input: Block - the message block object that holds the stylized message
 //		  channelName - the channel name that the message will be sent to
 void sendSlackMessage(MessageBlock Block, string channelName) {
+
 	// setup slack API session with the bot Oauth access token
 	auto& ConditionSlack = slack::create(slackAPIBotKey);
 	// specify sender information along with desired channel to send message to
