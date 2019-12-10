@@ -23,70 +23,57 @@ using std::cout;
 using std::endl;
 
 
+/*
+//////// Resources Used /////////
 
-// heavily referenced https://gist.github.com/alghanmi/c5d7b761b2c9ab199157 in order to define WriteCallBack function
-static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp)
-{
-	((std::string*)userp)->append((char*)contents, size * nmemb);
-	return size * nmemb;
-}
+ - Creating stylized messages with slack block builder tool: https://api.slack.com/tools/block-kit-builder?mode=message&blocks=%5B%5D
+ - Defining the required WriteCallBack function used in the WeatherBit API options: https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
+ - RapidAPI link to WeatherBit IO API where endpoints were tested and starter code was referenced: https://rapidapi.com/weatherbit/api/weather
+
+*/
+
+//////// function prototypes ///////
+nlohmann::json getFiveDayForecast();
+nlohmann::json getCurrentWeatherData();
+void sendSlackMessage(MessageBlock Block, string channelName);
+static size_t WriteCallback(void*, size_t, size_t, string*);
+
+//////// global variables ////////
+// This is the Oauth access token needed for the slack API. The channel workspace is also specified when generating this token
+// WARNING: if posted to public domain such as github, slack will revoke access and another token will need to be generated
+string slackAPIBotKey = "xoxb-862360242919-862955384838-mIi7hU0BWW3CYXPfPuv3OwwV";
 
 
 
 int main()
 {
+	
 	while (true) {
+		///////////////////////////////////////////////////////////
+		// PART 1: Severe Weather Alerts
+		///////////////////////////////////////////////////////////
 
-		// create a string to hold data
-		std::string ConditionreadBuffer;
-		nlohmann::json ConditionresponseJSON;
-		nlohmann::json ConditionDataJSON;
-
-		////initializes a curl setup
-		CURL* Condition = curl_easy_init();
-
-		////sets the options of the curl object to send a get request with latitude and longitude paramaters from Spokane
-		curl_easy_setopt(Condition, CURLOPT_CUSTOMREQUEST, "GET");
-		curl_easy_setopt(Condition, CURLOPT_URL, "https://weatherbit-v1-mashape.p.rapidapi.com/current?units=I&lang=en&lon=-117.42&lat=47.66");
-		curl_easy_setopt(Condition, CURLOPT_WRITEFUNCTION, &WriteCallback);
-		curl_easy_setopt(Condition, CURLOPT_WRITEDATA, &ConditionreadBuffer);
-
-		curl_easy_setopt(Condition, CURLOPT_VERBOSE, 1L); //tell curl to output its progress
-
-
-
-		//// adds to the header of the curl item which api, and api-key is being used
-		struct curl_slist* Conditionheaders = NULL;
-		Conditionheaders = curl_slist_append(Conditionheaders, "x-rapidapi-host: weatherbit-v1-mashape.p.rapidapi.com");
-		Conditionheaders = curl_slist_append(Conditionheaders, "x-rapidapi-key: 012fd474bamshbc8b59afe42a55ap1dd094jsn4a4772f6f401");
-		curl_easy_setopt(Condition, CURLOPT_HTTPHEADER, Conditionheaders);
-
-		CURLcode Conditionret = curl_easy_perform(Condition);
-
-		curl_easy_cleanup(Condition);
-
-		// Get rid of the extra [ and ] that were affecting JSON parsing due to only a single entity being returned
-		ConditionreadBuffer.erase(std::remove(ConditionreadBuffer.begin(), ConditionreadBuffer.end(), '['));
-		ConditionreadBuffer.erase(std::remove(ConditionreadBuffer.begin(), ConditionreadBuffer.end(), ']'));
-
-		// Put the entire response into a JSON object
-		ConditionresponseJSON = nlohmann::json::parse(ConditionreadBuffer);
+		//store the raw JSON holding current weather data from WeatherBit
+		nlohmann::json currentWeatherJSON = getCurrentWeatherData();
 
 		// Move into the data section of the json
-		ConditionDataJSON = ConditionresponseJSON.at("/data"_json_pointer);
+		nlohmann::json currentWeatherDataJSON = currentWeatherJSON.at("/data"_json_pointer);
 
 		// Retrieve city, snow, UV, and Wind_spd from the current weather data
-		string snow = ConditionDataJSON.at("/snow"_json_pointer).dump();
-		string UV = ConditionDataJSON.at("/uv"_json_pointer).dump();
-		string wind_spd = ConditionDataJSON.at("/wind_spd"_json_pointer).dump();
-		string ConditionCity = ConditionDataJSON.at("/city_name"_json_pointer).dump();
+		string snow = currentWeatherDataJSON.at("/snow"_json_pointer).dump();
+		string UV = currentWeatherDataJSON.at("/uv"_json_pointer).dump();
+		string wind_spd = currentWeatherDataJSON.at("/wind_spd"_json_pointer).dump();
+		string ConditionCity = currentWeatherDataJSON.at("/city_name"_json_pointer).dump();
 
 		// Get rid of extra quotes that are effecting JSON parsing
 		ConditionCity.erase(std::remove(ConditionCity.begin(), ConditionCity.end(), '"'));
 		ConditionCity.erase(std::remove(ConditionCity.begin(), ConditionCity.end(), '"'));
 
+		// using weather conditions as a seed, generate a new message block
 		MessageBlock SevereWeatherCheck(snow, UV, wind_spd, ConditionCity);
 
+		// This JSON object is used to create stylized message blocks in slack
+		// https://api.slack.com/tools/block-kit-builder?mode=message&blocks=%5B%5D
 		// Critical weather alert attachment string
 		string SevereWeatherTemplate = R"([
         {
@@ -99,94 +86,44 @@ int main()
             "footer": "Powered by Weatherbit IO and Slack API",
             "footer_icon": "https://kodi.tv/sites/default/files/styles/medium_crop/public/addon_assets/weather.weatherbit.io/icon/icon.png?itok=1bUxPgiD"
         }
-    
-])";
+		])";
+
 		// pass the block template string to our Message Block object
 		SevereWeatherCheck.setJSONtemplate(SevereWeatherTemplate);
-
+		// merge template with the weather conditons
 		SevereWeatherCheck.fillConditionTemplate();
 
-		auto& ConditionSlack = slack::create("xoxb-862360242919-862955384838-DLPqfA0GaqPAEGrjButYlUI4");
-
-		ConditionSlack.chat.channel_username_iconemoji("#project", "Weather Alert Bot", ":ghost");
-
-		std::cout << SevereWeatherCheck.getJSONtemplate() << endl;
-
-		auto Condition_attachments = nlohmann::json::parse(SevereWeatherCheck.getJSONtemplate());
-
-		nlohmann::json ConditionDump = Condition_attachments;
-
-		// Output for debugging purposes
-		std::cout << "Condition Dump:" << std::endl;
-		std::cout << std::endl;
-		std::cout << ConditionDump.dump(4) << std::endl;
-
-		ConditionSlack.chat.attachments = Condition_attachments;
-		auto ConditionResponse = ConditionSlack.chat.postMessage();
-		std::cout << ConditionResponse << endl << endl;
+		// Send severe weather message to slack
+		sendSlackMessage(SevereWeatherCheck, "#severe_weather_alerts");
 
 
-		/////////////////////////////////// PART 2: 3 hour interval forecast
-		// create a string to hold data
-		std::string readBuffer;
-		nlohmann::json responseJSON;
-		nlohmann::json FiveDayJSON;
 
-		////initializes a curl setup
-		CURL* hnd = curl_easy_init();
+		////////////////////////////////////////////////////////////
+		// PART 2: Daily Temperature Forecast with 3 hour intervals
+		////////////////////////////////////////////////////////////
 
-		////sets the options of the curl object to send a get request with latitude and longitude paramaters from Spokane
-		curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "GET");
-		curl_easy_setopt(hnd, CURLOPT_URL, "https://weatherbit-v1-mashape.p.rapidapi.com/forecast/3hourly?units=I&lang=en&lat=47.66&lon=-117.42");
-		curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, &WriteCallback);
-		curl_easy_setopt(hnd, CURLOPT_WRITEDATA, &readBuffer);
+		// send a GET request to the WeatherBit API and store response as a JSON
+		nlohmann::json FiveDayJSON = getFiveDayForecast();
 
-		curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L); //tell curl to output its progress
-
-	
-
-		//// adds to the header of the curl item which api, and api-key is being used
-		struct curl_slist* headers = NULL;
-		headers = curl_slist_append(headers, "x-rapidapi-host: weatherbit-v1-mashape.p.rapidapi.com");
-		headers = curl_slist_append(headers, "x-rapidapi-key: 012fd474bamshbc8b59afe42a55ap1dd094jsn4a4772f6f401");
-		curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
-
-		CURLcode ret = curl_easy_perform(hnd);
-
-		curl_easy_cleanup(hnd);
-
-
-		// String value to test with so we do not have to use API
-		//std::string teststring = "{\"data\": [{\"rh\":86,\"pod\" : \"n\",\"lon\" : -117.42,\"pres\" : 950.8,\"timezone\" : \"America\/Los_Angeles\",\"ob_time\" : \"2019-12-06 01:00\",\"country_code\" : \"US\",\"clouds\" : 100,\"ts\" : 1575594000,\"solar_rad\" : 0,\"state_code\" : \"WA\",\"city_name\" : \"Spokane\",\"wind_spd\" : 1.54,\"last_ob_time\" : \"2019-12-06T01:00:00\",\"wind_cdir_full\" : \"east-northeast\",\"wind_cdir\" : \"ENE\",\"slp\" : 1022.3,\"vis\" : 5,\"h_angle\" : -90,\"sunset\" : \"23:58\",\"dni\" : 0,\"dewpt\" : 3.7,\"snow\" : 0,\"uv\" : 0,\"precip\" : 0,\"wind_dir\" : 60,\"sunrise\" : \"15:22\",\"ghi\" : 0,\"dhi\" : 0,\"aqi\" : 14,\"lat\" : 47.66,\"weather\" : {\"icon\":\"c02n\",\"code\" : \"802\",\"description\" : \"Scattered clouds\"},\"datetime\" : \"2019-12-06:01\",\"temp\" : 5.9,\"station\" : \"2306P\",\"elev_angle\" : -10.04,\"app_temp\" : 4.9}] ,\"count\" : 1 }";
-
-		// Get rid of [ and ] brackets that were causing the JSON library to not correctly parse the data.
-		//readBuffer.erase(std::remove(readBuffer.begin(), readBuffer.end(), '['));
-		//readBuffer.erase(std::remove(readBuffer.begin(), readBuffer.end(), ']'));
-
-		MessageBlock DailyTempForecast;
-
-		// Insert the entire HTTP response message into a JSON object
-		FiveDayJSON = nlohmann::json::parse(readBuffer);
-
+		// parse Forecast JSON  to get the city name
 		string city = FiveDayJSON.at("/city_name"_json_pointer).dump();
 		city.erase(std::remove(city.begin(), city.end(), '"'));
 		city.erase(std::remove(city.begin(), city.end(), '"'));
 
+		// create a new message block to display the daily temperature forecast for specified city
+		MessageBlock DailyTempForecast;
 		DailyTempForecast.setCityName(city);
 
-		cout << endl << DailyTempForecast.getCityName() << endl;
+		//cout << endl << DailyTempForecast.getCityName() << endl;
 
 		// Holds an array of 40 weather objects. Each object holds data for a forecast 3 hours apart
 		nlohmann::json WeatherDataArray = FiveDayJSON.at("/data"_json_pointer);
 
 
-
 		nlohmann::json DailyTemperature;
 		std::string TemperatureString;
 
-
-
-		// Retrieve the forecast from 6AM - Midnight every three hours and add it to our MessageBlock (6AM, 9AM, 12PM, 3PM, 6PM, 9PM, 12AM for a total of 7)
+		// Retrieve the forecast from 7AM - 1AM every three hours and add it to our MessageBlock (7AM, 10AM, 1PM, 4PM, 7PM, 10PM, 1AM for a total of 7)
 		for (int i = 0; i < 7; i++) {
 			// New JSON object for each 3 hour interval
 			DailyTemperature = WeatherDataArray.at(i);
@@ -195,25 +132,26 @@ int main()
 			DailyTempForecast.addTemperature(TemperatureString);
 		}
 
+
+		//  Parse the weather data to store forecast date in message block
 		std::string DateString;
-		nlohmann::json DailyDate;
-
-		DailyDate = WeatherDataArray.at(0);
-		DateString = DailyDate.at("/timestamp_utc"_json_pointer).dump();
-
-
+		nlohmann::json ForecastDate;
+		ForecastDate = WeatherDataArray.at(0);
+		DateString = ForecastDate.at("/timestamp_utc"_json_pointer).dump();
+		// erase quotes and current time to get date in format: Year-month-day  e.g. 2019-12-10
 		DateString.erase(std::remove(DateString.begin(), DateString.end(), '"'));
 		DateString.erase(std::remove(DateString.begin(), DateString.end(), '"'));
 		DateString.erase(DateString.begin() + 10, DateString.end());
-
+		// pass date into message block object
 		DailyTempForecast.setDate(DateString);
 
 
 
-		// "text": "Time:   6AM\t9AM\t12PM\t3PM\t6PM\t9PM\t12AM\nTemp:\t t1\t \tt2\t\t t3\t\t t4 \t\t t5 \t   t6\t\t t7",
-
+		// This JSON object is used to create stylized message blocks in slack
+		// https://api.slack.com/tools/block-kit-builder?mode=message&blocks=%5B%5D
+		// Daily temperature forecast attachment string
 		std::string ForecastBlockTemplate = R"([
-	{
+		{
             "fallback": "Required plain-text summary of the attachment .",
             "color": "#36a64f",
             "pretext": "Daily Weather Report for on",
@@ -226,142 +164,139 @@ int main()
             "footer": "Powered by Weatherbit IO and Slack API",
             "footer_icon": "https://kodi.tv/sites/default/files/styles/medium_crop/public/addon_assets/weather.weatherbit.io/icon/icon.png?itok=1bUxPgiD"
             
-        }
-])";
-
+		}
+		])";
 
 		//pass the block template string to our Message Block object
 		DailyTempForecast.setJSONtemplate(ForecastBlockTemplate);
-
 		//populate message block with temperatures
 		DailyTempForecast.fillTemplate();
-
-
-		// Start slack session with bot token
-		auto& slack = slack::create("xoxb-862360242919-862955384838-DLPqfA0GaqPAEGrjButYlUI4");
-
-		// Set username and channel
-		slack.chat.channel_username_iconemoji("#project", "Weather Bot", ":hamster:");
-
-
-		cout << endl << DailyTempForecast.getJSONtemplate();
-
-		// Create Attachment Block by parsing our string that stores the temperatures for all 7 intervals
-		auto json_attachments = nlohmann::json::parse(DailyTempForecast.getJSONtemplate());
-
-
-		// Created to output Attachment data for debugging purposes
-		nlohmann::json AttachmentDump = json_attachments;
-
-		std::cout << "Attachment Dump:" << std::endl;
-		std::cout << std::endl;
-		std::cout << AttachmentDump.dump() << std::endl;
-
-
-
-		// Send Attachments and listen for response from Slack
-		slack.chat.attachments = json_attachments;
-		auto response = slack.chat.postMessage();
-		std::cout << response << std::endl << std::endl;
+		// send stylized forecast message to the daily_forecast channel
+		sendSlackMessage(DailyTempForecast, "#daily_forecast");
 
 
 
 
-		// "temp"   
-
-		/*// Grab all of the key value pairs inside the "data" section
-		responseJSON = responseJSON.at("/data"_json_pointer);
-
-		std::cout << responseJSON.dump() << std::endl;
-		std::cout << responseJSON.size() << std::endl;
-
-		// Get the value for "app_temp" and store it inside responseJSON
-		responseJSON = responseJSON.at("/app_temp"_json_pointer);
-		std::cout << responseJSON.dump();
-
-		// Get the stored app_temp value as a string
-		std::string temperature = responseJSON.dump();
-
-		std::cout << temperature << std::endl << std::endl;
-
-
-
-
-		//std::string a = "[{"color":"#36a64f","fallback":"Required plain - text summary of the attachment.","fields":[{"short":false,"title":"Priority","value":"High"}],"footer":"Slack API","footer_icon":"https://platform.slack-edge.com/img/default_application_icon.png","image_url":"http://my-website.com/path/to/image.jpg","pretext":"Daily Weather Report as of","text":"Time:   6AM\t9AM\t12PM\t3PM\t6PM\t9PM\t12AM\nTemp:\t t1\t \tt2\t\t t3\t\t t4 \t\t t5 \t   t6\t\t t7","thumb_url":"http://example.com/path/to/thumb.png","title_link":"https://api.slack.com/"}]"
-
-
-
-
-
-		std::cout << json_attachments.dump() << std::endl << std::endl;
-
-
-
-
-
-	*/
-		std::this_thread::sleep_for(std::chrono::hours(1));
-	
+		std::this_thread::sleep_for(std::chrono::seconds(10));
 
 	}
 	return 0;
 }
 
 
+// This function creates a slack API connection and sends a stylized message block to a specific channel
+// Input: Block - the message block object that holds the stylized message
+//		  channelName - the channel name that the message will be sent to
+void sendSlackMessage(MessageBlock Block, string channelName) {
+	// setup slack API session with the bot Oauth access token
+	auto& ConditionSlack = slack::create(slackAPIBotKey);
+	// specify sender information along with desired channel to send message to
+	ConditionSlack.chat.channel_username_iconemoji(channelName, "Weather Alert Bot", ":ghost");
+	//std::cout << Block.getJSONtemplate() << endl;
+
+	// create a JSON object from the string template in our message block and add it to our slack message
+	auto Condition_attachments = nlohmann::json::parse(Block.getJSONtemplate());
+	nlohmann::json ConditionDump = Condition_attachments;
+
+	// Output for debugging purposes
+	//std::cout << "Condition Dump:" << std::endl;
+	//std::cout << std::endl;
+	//std::cout << ConditionDump.dump(4) << std::endl;
+
+	ConditionSlack.chat.attachments = Condition_attachments;
+
+	// post the message to slack and store the response message
+	auto ConditionResponse = ConditionSlack.chat.postMessage();
+	std::cout << ConditionResponse << endl << endl;
+
+}
+
+
+// this function sets WeatherBit API options and makes a GET request for a 5 day forecast
+// A JSON object containing the current weather is returned
+nlohmann::json getFiveDayForecast() {
+
+	// create a string to hold data
+	std::string readBuffer;
+
+	////initializes a curl setup
+	CURL* hnd = curl_easy_init();
+
+	////sets the options of the curl object to send a get request with latitude and longitude paramaters from Spokane
+	curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "GET");
+	curl_easy_setopt(hnd, CURLOPT_URL, "https://weatherbit-v1-mashape.p.rapidapi.com/forecast/3hourly?units=I&lang=en&lat=47.66&lon=-117.42");
+	curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, &WriteCallback);
+	curl_easy_setopt(hnd, CURLOPT_WRITEDATA, &readBuffer);
+	curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L); //tell curl to output its progress
+
+	//// adds to the header of the curl item which api, and api-key is being used
+	struct curl_slist* headers = NULL;
+	headers = curl_slist_append(headers, "x-rapidapi-host: weatherbit-v1-mashape.p.rapidapi.com");
+	headers = curl_slist_append(headers, "x-rapidapi-key: 012fd474bamshbc8b59afe42a55ap1dd094jsn4a4772f6f401");
+	curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
+
+	// send the request and store the response code
+	CURLcode ret = curl_easy_perform(hnd);
+
+	// cleanup the curl pointer
+	curl_easy_cleanup(hnd);
+
+	// Insert the entire HTTP response message into a JSON object and return it
+	return nlohmann::json::parse(readBuffer);
+}
 
 
 
 
+// this function sets WeatherBit API options and makes a GET request for the current weather
+// A JSON object containing the current weather is returned
+nlohmann::json getCurrentWeatherData() {
+
+	// create a string to hold data
+	std::string ConditionreadBuffer;
+
+	////initializes a curl setup
+	CURL* Condition = curl_easy_init();
+
+	////sets the options of the curl object to send a get request with latitude and longitude paramaters from Spokane
+	curl_easy_setopt(Condition, CURLOPT_CUSTOMREQUEST, "GET");
+	curl_easy_setopt(Condition, CURLOPT_URL, "https://weatherbit-v1-mashape.p.rapidapi.com/current?units=I&lang=en&lon=-117.42&lat=47.66");
+	curl_easy_setopt(Condition, CURLOPT_WRITEFUNCTION, &WriteCallback);
+	curl_easy_setopt(Condition, CURLOPT_WRITEDATA, &ConditionreadBuffer);
+	curl_easy_setopt(Condition, CURLOPT_VERBOSE, 1L); //tell curl to output its progress
+
+	//// adds to the header of the curl item which api, and api-key is being used
+	struct curl_slist* Conditionheaders = NULL;
+	Conditionheaders = curl_slist_append(Conditionheaders, "x-rapidapi-host: weatherbit-v1-mashape.p.rapidapi.com");
+	Conditionheaders = curl_slist_append(Conditionheaders, "x-rapidapi-key: 012fd474bamshbc8b59afe42a55ap1dd094jsn4a4772f6f401");
+	curl_easy_setopt(Condition, CURLOPT_HTTPHEADER, Conditionheaders);
+
+	// send the request and store the response code
+	CURLcode Conditionret = curl_easy_perform(Condition);
+
+	// cleanup the curl pointer
+	curl_easy_cleanup(Condition);
+
+	// Get rid of the extra [ and ] that were affecting JSON parsing due to only a single entity being returned
+	ConditionreadBuffer.erase(std::remove(ConditionreadBuffer.begin(), ConditionreadBuffer.end(), '['));
+	ConditionreadBuffer.erase(std::remove(ConditionreadBuffer.begin(), ConditionreadBuffer.end(), ']'));
+
+	// Put the entire response into a JSON object and return it
+	return nlohmann::json::parse(ConditionreadBuffer);
+}
 
 
 
 
+// This function is used to write the data that the WeatherBit API returns to a string
+// heavily referenced https://gist.github.com/alghanmi/c5d7b761b2c9ab199157 in order to define WriteCallBack function
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp)
+{
+	((std::string*)userp)->append((char*)contents, size * nmemb);
+	return size * nmemb;
+}
 
 
 
 
-
-
-
-//	std::cout << responseJSON.dump();
-//
-//	auto it_initialresponse = responseJSON.count("data");
-//std::cout << "Value at initial:" << it_initialresponse << std::endl;
-//
-//// https://nlohmann.github.io/json/classnlohmann_1_1basic__json_a8ab61397c10f18b305520da7073b2b45.html#a8ab61397c10f18b305520da7073b2b45
-//// Parse out just the data section
-//
-//	std::cout << responseJSON.at("/data/app_temp"_json_pointer) << std::endl;
-//
-//
-//
-//// Set the data section = to a new JSON object.
-//	nlohmann::json newJSON = responseJSON.at("/data"_json_pointer);
-//
-//	std::cout << newJSON.dump(4);
-//
-//	auto app_temp = newJSON.find("\"app_temp\"");
-//	std::cout << "app temp: " << *app_temp << std::endl;
-
-//nlohmann::json newJSON = nlohmann::json::object({ teststring });
-
-//std::cout << newJSON.dump(4) << std::endl;
-//std::cout << newJSON.size();
-//
-//	std::string conversion = newJSON.dump();
-////
-//	auto j3 = nlohmann::json::parse(conversion);
-//
-//	j3[""]
-//
-//
-//auto it_check = FinalJSON.count("app_temp");
-//std::cout << "Value at temp:" << it_check << std::endl;
-
-
-
-
-	//auto it_data = responseJSON.find("data");
-	//std::string data = it_data.value;
-	//std::cout << data << std::endl;
 

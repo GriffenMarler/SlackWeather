@@ -1,5 +1,2 @@
-﻿  MessageBlock.cpp
-C:\Users\gmarler20\Desktop\NetworksFinal-master (3)\NetworksFinal-master\NetworksCurlWithJSON\NetworksCurl\MessageBlock.cpp(140,36): warning C4267:  'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\gmarler20\Desktop\NetworksFinal-master (3)\NetworksFinal-master\NetworksCurlWithJSON\NetworksCurl\MessageBlock.cpp(147,50): warning C4267:  'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\gmarler20\Desktop\NetworksFinal-master (3)\NetworksFinal-master\NetworksCurlWithJSON\NetworksCurl\MessageBlock.cpp(152,50): warning C4267:  'initializing': conversion from 'size_t' to 'int', possible loss of data
-  NetworksCurl.vcxproj -> C:\Users\gmarler20\Desktop\NetworksFinal-master (3)\NetworksFinal-master\NetworksCurlWithJSON\x64\Debug\NetworksCurl.exe
+﻿  NetworksCurl.cpp
+  NetworksCurl.vcxproj -> C:\Users\shaugland21\Desktop\WeatherAlerts\NetworksFinal\NetworksCurlWithJSON\x64\Debug\NetworksCurl.exe
