@@ -84,7 +84,7 @@ int main()
 		std::string TemperatureString;
 
 		// Retrieve the forecast from 7AM - 1AM every three hours and add it to our MessageBlock (7AM, 10AM, 1PM, 4PM, 7PM, 10PM, 1AM for a total of 7)
-		for (int i = 2; i < 9; i++) {
+		for (int i = 1; i < 8; i++) {
 			// New JSON object for each 3 hour interval
 			DailyTemperature = WeatherDataArray.at(i);
 			// Push back the value stored at temperature
@@ -190,7 +190,7 @@ int main()
 
 			//cout << "One 'hour' has passed" << endl;
 			// sleep for one hour
-			std::this_thread::sleep_for(std::chrono::seconds(1));
+			std::this_thread::sleep_for(std::chrono::hours(1));
 
 		}
 
@@ -240,7 +240,7 @@ nlohmann::json getFiveDayForecast() {
 
 	////sets the options of the curl object to send a get request with latitude and longitude paramaters from Spokane
 	curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "GET");
-	curl_easy_setopt(hnd, CURLOPT_URL, "https://weatherbit-v1-mashape.p.rapidapi.com/forecast/3hourly?units=I&lang=en&lat=47.66&lon=-117.42");
+	curl_easy_setopt(hnd, CURLOPT_URL, "https://weatherbit-v1-mashape.p.rapidapi.com/forecast/3hourly?units=I&lang=en&lat=45.52566&lon=-122.6666");
 	curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, &WriteCallback);
 	curl_easy_setopt(hnd, CURLOPT_WRITEDATA, &readBuffer);
 	curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L); //tell curl to output its progress
