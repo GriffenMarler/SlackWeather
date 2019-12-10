@@ -18,7 +18,7 @@ If you would like to implement this bot in your own Slack workspace, take a look
 10. Now, you will need to obtain a key for RapidAPI by subscribing to the WeatherBit API. Navigate to the pricing plan screen and sign up: https://rapidapi.com/weatherbit/api/weather/pricing
 11. Navigate to the WeatherBit endpoint page: https://rapidapi.com/weatherbit/api/weather/endpoints
 12. Obtain your X-RapidAPI-Key and store it in a convenient place. Also obtain your X-RapidAPI-Host string and store it in a convenient place.
-13. Input your conveniently stored Bot User Ouath Access Token, X-RapidAPI-Key, and X-RapidAPI-Host string into the global variables at the top of "NetworksCurl.cpp". 
+13. Input your conveniently stored Bot User Ouath Access Token, X-RapidAPI-Key at the top of "NetworksCurl.cpp" in the global variable section. IMPORTANT: include "X-RapidAPI-Key: " before you paste your RapidAPI key. Also, do not upload your personal keys to github. They will get revoked.
 
 ## Virtual Machine Set-Up
 We suggest users to deploy our machine on an Azure Virtual Machine, so the bot can virtually run 24/7. For our final project we used an Azure virtual machine with a Visual Studio 2019 Community image preuploaded to it. We then pulled our project from github to allow us to run our program on the virtual machine. We chose an Azure device on a simple plan in order to keep costs down. We used RDP (Remote Desktop Protocol) to access our Azure virtual machine. More documentation on Azure virtual machines imaged with visual studio can be found at this link: https://docs.microsoft.com/en-us/visualstudio/install/using-visual-studio-vm?view=vs-2019
