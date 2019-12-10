@@ -4,6 +4,8 @@ SlackWeather allows a user to get daily weather forecast updates and critical we
 
 SlackWeather is a C++ program that utilizes the cURL library (https://curl.haxx.se/libcurl/), slacking library for Slack API (https://github.com/coin-au-carre/slacking), Nlohmann Json parser (https://nlohmann.github.io/json/) and the Weatherbit IO API accessed through RapidAPI (https://rapidapi.com/weatherbit/api/weather). If you are confused at all about how any of these library works, please refer to our source code as well as the links above for examples and functionality. 
 
+If you would like to join our slack workspace and receive updates on our current weather forecast, join our slack workspace at this link: https://join.slack.com/t/networks-mx06422/shared_invite/enQtODYwMDQ0Mjc2MTY0LTJiMGYwMGY0OTJlOWQwZmYxYmJkYjcyNDM0Yzk5NWE5MWM2OTA1MWVmYjI1MmIwMWNjZGE1OTMyMmM4MWFjMTc
+
 ## Program Configurations
 If you would like to implement this bot in your own Slack workspace, take a look at the following steps:
 1. Create or login to an existing Slack workspace
