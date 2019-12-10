@@ -27,3 +27,4 @@ We suggest users to deploy our machine on an Azure Virtual Machine, so the bot c
 
 ## Creators
 Stephen Haugland and Griffen Marler
+Whitworth University
